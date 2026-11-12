@@ -19,7 +19,11 @@ assets/*
 public/room/assets/models/*
 !public/room/assets/models/README.md
 !public/room/assets/models/da-feiyu.opt.glb
-!public/room/assets/models/da-feiyu.glb
+
+# 大文件不进 git（安装包/原始素材，分发看 README，不要塞仓库）
+anime maid 3d model.glb
+tools/*.msi
+tools/*.dmg
 
 # 个人角色卡：只保留示例和说明
 roles/*.md
