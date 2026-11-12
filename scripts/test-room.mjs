@@ -175,7 +175,10 @@ test('saveRoomState / loadRoomState 原子落盘并保持字段', () => {
   assert.equal(loaded.notes[0].text, '留在墙上');
   assert.equal(loaded.updatedAt, T0);
   const mode = fs.statSync(file).mode & 0o777;
-  assert.equal(mode, 0o600, '房间状态是私有数据，0600');
+  if (process.platform !== 'win32') {
+    // Windows 的 fs.chmod 只映射只读位，拿不到 0600；那里真正的收紧走 icacls（harden-state-acl）。
+    assert.equal(mode, 0o600, '房间状态是私有数据，0600');
+  }
   fs.rmSync(dir, { recursive: true, force: true });
 });
 

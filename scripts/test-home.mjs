@@ -401,7 +401,10 @@ test('save / load 原子落盘，0600 权限', () => {
   const loaded = loadHomeState(file, T0 + 1);
   assert.equal(loaded.needs.hunger, 0.32);
   assert.equal(loaded.updatedAt, T0);
-  assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  if (process.platform !== 'win32') {
+    // Windows 的 fs.chmod 只映射只读位，拿不到 0600；那里真正的收紧走 icacls。
+    assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  }
   fs.rmSync(dir, { recursive: true, force: true });
 });
 

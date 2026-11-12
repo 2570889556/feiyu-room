@@ -76,6 +76,12 @@
     "@snowluma/mcp": "^1.14.20",
     "@snowluma/sdk": "^1.14.20",
     "js-yaml": "^4.3.2",
+    "mqtt": "^5.16.1",
+    "trystero": "^0.21.5",
     "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "node-datachannel": "^0.33.6"
   }
 }

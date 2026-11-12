@@ -7,6 +7,12 @@ import { createGardenClient } from './garden-client.js';
 import { createGardenWorld } from './garden-world.js';
 import { getGardenFraming } from './garden-camera.js';
 
+// 联机层（P2P）：一个浏览器一条鱼。加载失败不影响房间本体，只当单机。
+let netTick = () => {};
+import('./net.js').then((m) => { netTick = m.tick; }).catch((err) => {
+  console.warn('[net] 联机层加载失败，按单机运行', err);
+});
+
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const SHOT = params.get('shot') === '1';
@@ -1996,6 +2002,8 @@ function frame(now) {
       model3d.setPose(pose);
       model3d.update(dt, camera, { mode: VIEW.mode, lookAtCamera: !walkingNow && !her.gardenWork });
     }
+    // 把「我」的显示位置喂给联机层；别人的鱼由 net.js 自己渲染
+    netTick(dt, { scene, camera, pos: displayPos, facing: her.facing || 0, walking: walkingNow });
     if (chibiReady && chibi && !modelReady) {
       chibi.setPose(pose);
       chibi.update(dt, camera, { mode: VIEW.mode, lookAtCamera: !walkingNow && !her.gardenWork });

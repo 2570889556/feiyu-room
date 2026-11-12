@@ -3673,9 +3673,12 @@ async function main() {
         res.end(JSON.stringify({ ok: false, error: '无效的请求地址' }));
         return;
       }
+      // /room/ 要允许被 DSH 界面用 iframe 嵌入（端口不同=跨源，DENY 会让 iframe 白屏）；
+      // 其余接口保持 DENY。
+      const isRoomPath = url.pathname === '/room' || url.pathname.startsWith('/room/');
       const SECURITY_HEADERS = {
-        'X-Frame-Options': 'DENY',
-        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self' blob:",
+        ...(isRoomPath ? {} : { 'X-Frame-Options': 'DENY' }),
+        'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self' blob: wss: https:",
         'Cache-Control': 'no-store',
         'X-Content-Type-Options': 'nosniff',
         'Referrer-Policy': 'no-referrer'
@@ -3986,7 +3989,7 @@ async function main() {
           let data;
           try { data = fs.readFileSync(file); } catch { sendJson({ ok: false, error: '房间文件不存在' }, 404); return; }
           const ext = path.extname(file).toLowerCase();
-          const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.webm': 'video/webm', '.mp4': 'video/mp4', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.glb': 'model/gltf-binary' };
+          const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.webm': 'video/webm', '.mp4': 'video/mp4', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.glb': 'model/gltf-binary' };
           const headers = { 'content-type': types[ext] || 'application/octet-stream', ...SECURITY_HEADERS, 'cache-control': 'no-store' };
           if (ext === '.html' && consoleToken && tokenMatches) {
             headers['Set-Cookie'] = `dsh_room=${encodeURIComponent(consoleToken)}; Path=/room/; HttpOnly; SameSite=Strict; Max-Age=43200`;
@@ -4012,7 +4015,7 @@ async function main() {
           let data;
           try { data = fs.readFileSync(file); } catch { sendJson({ ok: false, error: '攻略文件不存在' }, 404); return; }
           const ext = path.extname(file).toLowerCase();
-          const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.md': 'text/plain; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.webm': 'video/webm', '.mp4': 'video/mp4', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.glb': 'model/gltf-binary' };
+          const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.md': 'text/plain; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.webm': 'video/webm', '.mp4': 'video/mp4', '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.glb': 'model/gltf-binary' };
           res.writeHead(200, { 'content-type': types[ext] || 'application/octet-stream', ...SECURITY_HEADERS, 'cache-control': 'no-store' });
           res.end(data);
           return;
@@ -6878,7 +6881,7 @@ async function main() {
           const returnImage = body.returnImage === true;
           const shotPath = path.join(STATE_DIR, `room-${Date.now()}-${Math.random().toString(36).slice(2, 7)}.png`);
           try {
-            // 必须异步：截图脚本要访问的正是本进程的 13100 端口，
+            // 必须异步：截图脚本要访问的正是本进程的 3100 端口，
             // 用 execFileSync 阻塞事件循环会让页面永远加载不出来（死锁，实测超时）。
             await new Promise((resolve, reject) => {
               const child = spawn(process.execPath, [path.join(ROOT, 'scripts', 'room-shot.mjs'), shotPath], {

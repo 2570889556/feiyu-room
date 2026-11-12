@@ -1,4 +1,4 @@
-# 安装与验收（从零开始）
+﻿# 安装与验收（从零开始）
 
 > 目标：在一台自己的电脑/云主机上，把房间、DSH、桥接和（可选）QQ 跑起来。  
 > 下面的命令默认在**项目根目录**执行。Windows PowerShell 与 Linux/macOS 的路径写法略有不同，见文末。
@@ -221,14 +221,14 @@ npm start
 看到类似：
 
 ```text
-本地控制台已启动：http://127.0.0.1:13100
+本地控制台已启动：http://127.0.0.1:3100
 DSH 已就绪
 ```
 
 就成功了。浏览器打开：
 
 ```text
-http://127.0.0.1:13100/room/
+http://127.0.0.1:3100/room/
 ```
 
 > 必须带结尾斜杠 `/room/`；`/room` 会 302，相对路径可能解析错。
@@ -318,10 +318,10 @@ public/room/assets/models/da-feiyu.glb       58.9 MB，原始备份，页面不�
 如果房间跑在云主机，建议用 SSH 隧道，而不是把端口裸奔到公网：
 
 ```bash
-ssh -L 13100:127.0.0.1:13100 user@your-server
+ssh -L 3100:127.0.0.1:3100 user@your-server
 ```
 
-然后本机浏览器打开 `http://127.0.0.1:13100/room/`。  
+然后本机浏览器打开 `http://127.0.0.1:3100/room/`。  
 这样房间 API 仍然走回环，不需要把 token 暴露到公网。
 
 如果一定要反向代理，请自己配置 HTTPS、访问控制和 `config.json` 的 `room.access`，并阅读 `docs`/代码里的安全注释。
@@ -349,7 +349,7 @@ npm run test:mcp-servers
 
 ## 15. 常见问题
 
-### `EADDRINUSE :13100`
+### `EADDRINUSE :3100`
 
 已经有一个桥接进程。不要重复 `npm start`：
 
